@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1b3a5c">
 <title>Expense Reimbursement Form | JBCC</title>
+
+<!-- 엑셀 처리 및 PDF 생성을 위한 라이브러리 -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
 <style>
   *{box-sizing:border-box;}
   :root{
@@ -23,7 +29,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,
       "Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
     font-size:16px;line-height:1.45;
-    padding-bottom:calc(160px + env(safe-area-inset-bottom));
+    padding-bottom:calc(220px + env(safe-area-inset-bottom));
   }
 
   /* ---------- Header ---------- */
@@ -140,7 +146,9 @@
   .total-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px;}
   .total-row span{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);}
   .total-row strong{font-size:22px;color:var(--navy);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
-  .btn-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  
+  /* 버튼 레이아웃 (4개 버튼에 맞게 수정) */
+  .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
   .btn-row button{
     padding:12px 6px;border-radius:10px;border:1px solid var(--line);
     background:#f6f9fc;color:var(--navy);font-size:13px;font-weight:700;
@@ -148,6 +156,7 @@
   }
   .btn-row button:active{transform:scale(.97);}
   .btn-row .primary{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .btn-row .full-width{grid-column: span 2;}
 
   /* ============ 모바일: 카드형 레이아웃 ============ */
   @media (max-width:700px){
@@ -200,6 +209,7 @@
     .badge{background:transparent !important;color:#000 !important;padding:0 !important;min-width:0 !important;height:auto !important;}
     .sign-card{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
     .sign{background:#f2f2f2 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .bottom-bar { display: none !important; }
   }
 </style>
 </head>
@@ -210,7 +220,8 @@
   <h2>EXPENSE REIMBURSEMENT FORM</h2>
 </header>
 
-<main>
+<!-- PDF로 만들 영역 (main 태그에 id 부여) -->
+<main id="pdf-area">
   <!-- 기본 정보 -->
   <section class="card">
     <div class="field">
@@ -263,9 +274,12 @@
     <strong id="totalAmount">$0.00</strong>
   </div>
   <div class="btn-row">
-    <button type="button" class="primary" id="btnPrint">인쇄 / PDF</button>
+    <!-- 새로 추가된 완료 버튼 (엑셀 + PDF) -->
+    <button type="button" class="primary full-width" id="btnComplete">✅ 완료 (엑셀 저장 + PDF 생성)</button>
+    
+    <button type="button" id="btnPrint">인쇄 / PDF</button>
     <button type="button" id="btnCsv">CSV 저장</button>
-    <button type="button" id="btnReset">초기화</button>
+    <button type="button" class="full-width" id="btnReset">초기화</button>
   </div>
 </div>
 
@@ -539,6 +553,108 @@
     renumber();
     updateTotal();
     window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  /* ==========================================================
+     ★★★ 새로 추가된 기능: 완료 버튼 (엑셀 채우기 + PDF 생성) ★★★
+     ========================================================== */
+  document.getElementById('btnComplete').addEventListener('click', async function() {
+    const btn = this;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ 처리 중...';
+
+    try {
+      // 1. 현재 폼 데이터 수집
+      const requestedBy = inRequested.value.trim();
+      const dateSubmitted = inDateSub.value;
+
+      const rows = [];
+      Array.prototype.forEach.call(tbody.children, function(tr) {
+        const date = tr.querySelector('.in-date').value;
+        const vendor = tr.querySelector('.in-vendor').value.trim();
+        const desc = tr.querySelector('.in-desc').value.trim();
+        const amount = tr.querySelector('.in-amount').value.trim();
+
+        if (vendor || desc || amount) {
+          rows.push({ date, vendor, desc, amount });
+        }
+      });
+
+      if (!requestedBy) {
+        alert('Requested By (요청자) 이름을 입력해주세요.');
+        return;
+      }
+
+      // 2. 엑셀 템플릿 불러오기 (GitHub에 업로드한 파일명과 일치해야 함)
+      const templateUrl = './JBCC_Expense_Reimbursement_Form.xlsx';
+      const response = await fetch(templateUrl);
+      
+      if (!response.ok) {
+        throw new Error('엑셀 템플릿을 불러올 수 없습니다. GitHub에 JBCC_Expense_Reimbursement_Form.xlsx 파일이 업로드되어 있는지 확인해주세요.');
+      }
+      
+      const arrayBuffer = await response.arrayBuffer();
+
+      // 3. SheetJS로 엑셀 파일 읽기
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+
+      // 4. 셀에 데이터 채우기 (제공해주신 엑셀 구조에 맞춤)
+      // 12행: Requested By (B12), Date Submitted (E12)
+      if (requestedBy) worksheet['B12'] = { v: requestedBy, t: 's' };
+      if (dateSubmitted) worksheet['E12'] = { v: dateSubmitted, t: 's' };
+
+      // 16행부터 35행까지 데이터 채우기 (총 20개 행)
+      const startRow = 16;
+      for (let i = 0; i < 20; i++) {
+        const rowNum = startRow + i;
+        if (i < rows.length) {
+          const rowData = rows[i];
+          worksheet['A' + rowNum] = { v: i + 1, t: 'n' }; // No.
+          if (rowData.date) worksheet['B' + rowNum] = { v: rowData.date, t: 's' };
+          if (rowData.vendor) worksheet['C' + rowNum] = { v: rowData.vendor, t: 's' };
+          if (rowData.desc) worksheet['D' + rowNum] = { v: rowData.desc, t: 's' };
+          if (rowData.amount) worksheet['E' + rowNum] = { v: parseFloat(rowData.amount.replace(/,/g, '')), t: 'n' };
+        } else {
+          // 남은 빈 행은 빈 값으로 초기화
+          worksheet['A' + rowNum] = { v: '', t: 's' };
+          worksheet['B' + rowNum] = { v: '', t: 's' };
+          worksheet['C' + rowNum] = { v: '', t: 's' };
+          worksheet['D' + rowNum] = { v: '', t: 's' };
+          worksheet['E' + rowNum] = { v: '', t: 's' };
+        }
+      }
+
+      // 5. 채워진 엑셀 파일 다운로드
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const excelBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+      const fileName = `JBCC_Expense_${dateSubmitted || todayStr()}`;
+      saveAs(excelBlob, `${fileName}.xlsx`);
+
+      // 6. PDF 생성 (pdf-area 영역을 PDF로 변환)
+      const element = document.getElementById('pdf-area');
+      const opt = {
+        margin:       [10, 5, 10, 5], // top, right, bottom, left (mm)
+        filename:     `${fileName}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      
+      await html2pdf().set(opt).from(element).save();
+
+      alert('✅ 엑셀 파일과 PDF 파일이 성공적으로 다운로드되었습니다!');
+
+    } catch (error) {
+      console.error('오류 발생:', error);
+      alert('파일 처리 중 오류가 발생했습니다.\n\n' + error.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 
   /* ---------- 시작 ---------- */
