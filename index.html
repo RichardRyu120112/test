@@ -4,11 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1b3a5c">
-<title>Expense Reimbursement Form | JBCC</title>
-
-<!-- PDF 자동 생성 라이브러리 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
+<title>JBCC Expense Reimbursement Form</title>
 <style>
   * { box-sizing: border-box; }
   :root {
@@ -30,10 +26,13 @@
       "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
     font-size: 16px;
     line-height: 1.45;
-    padding-bottom: calc(200px + env(safe-area-inset-bottom));
   }
 
-  /* ============ 입력 폼 (모바일 친화적) ============ */
+  /* =========================================================
+     화면용 (모바일 친화적 입력 폼)
+     ========================================================= */
+  .form-screen { padding-bottom: calc(220px + env(safe-area-inset-bottom)); }
+
   .app-header {
     background: linear-gradient(140deg, #17324f, #2f6fb0);
     color: #fff;
@@ -44,11 +43,8 @@
   .app-header h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
 
   .card {
-    background: #fff;
-    margin: 12px;
-    border-radius: var(--radius);
-    box-shadow: 0 1px 4px rgba(16,32,48,.08);
-    padding: 16px;
+    background: #fff; margin: 12px; border-radius: var(--radius);
+    box-shadow: 0 1px 4px rgba(16,32,48,.08); padding: 16px;
   }
   .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
   .field:last-of-type { margin-bottom: 0; }
@@ -77,7 +73,7 @@
     background: #fff; margin: 12px; border-radius: var(--radius);
     box-shadow: 0 1px 4px rgba(16,32,48,.08); overflow: hidden;
   }
-  table.input-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .input-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .input-table thead th {
     background: #eef3f8; color: var(--navy);
     font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
@@ -150,6 +146,13 @@
   .btn-row .primary { background: var(--navy); border-color: var(--navy); color: #fff; }
   .btn-row .full-width { grid-column: span 2; }
 
+  .print-tip {
+    margin: 10px 0 0; padding: 8px 10px;
+    font-size: 11.5px; line-height: 1.5; color: #68788a;
+    background: #f4f7fb; border-radius: 8px; text-align: center;
+  }
+  .print-tip b { color: var(--navy); }
+
   @media (max-width: 700px) {
     .input-table thead { display: none; }
     .input-table, .input-table tbody, .input-table tr, .input-table td { display: block; width: 100%; }
@@ -177,251 +180,228 @@
     .bottom-bar { max-width: 1000px; margin: 0 auto; border-radius: 0; }
   }
 
-  /* ============ PDF 템플릿 (숨김, 캡처 시에만 표시) ============ */
-  #pdf-template {
-    display: none;
-    width: 794px;
-    min-height: 1123px;
-    padding: 40px 44px;
-    background: #fff;
-    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-    color: #000;
-    font-size: 12px;
-    line-height: 1.3;
-  }
-  body.capturing #pdf-template {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1;
-  }
+  /* =========================================================
+     인쇄용 (A4 엑셀 양식) — 평소엔 숨김
+     ========================================================= */
+  .form-print { display: none; }
 
-  /* 결재란 */
-  .approval-wrap { text-align: right; margin-bottom: 6px; }
-  .approval-table { border-collapse: collapse; display: inline-table; border: 2px solid #000; }
-  .approval-table td { border: 1px solid #000; padding: 3px 8px; text-align: center; font-size: 11px; }
-  .approval-table .rotated {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    font-weight: bold;
-    padding: 4px 3px;
-    letter-spacing: 1px;
-    font-size: 12px;
-  }
-  .approval-table .header-cell { font-weight: bold; min-width: 68px; height: 22px; }
-  .approval-table .body-cell { height: 90px; min-width: 68px; }
-
-  /* 파란 배너 */
-  .banner {
-    background: #b4c6e7;
-    border: 1px solid #000;
-    text-align: center;
-    padding: 7px;
-    font-size: 19px;
-    font-weight: bold;
-    color: #1b3a5c;
-    margin-top: 4px;
-    letter-spacing: .02em;
-  }
-  .sub-banner {
-    text-align: center;
-    font-size: 15px;
-    font-weight: bold;
-    padding: 7px 0 4px;
-    letter-spacing: .05em;
-  }
-
-  /* 정보 + 로고 */
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin: 8px 0 6px;
-    gap: 15px;
-    min-height: 80px;
-  }
-  .info-fields { flex: 1; font-size: 13px; line-height: 1.9; }
-  .info-fields b { font-weight: bold; }
-  .info-fields > div { margin-bottom: 2px; }
-  .logo-space { width: 120px; text-align: right; flex-shrink: 0; }
-  .logo-space img { max-width: 110px; max-height: 80px; object-fit: contain; }
-
-  /* PDF 데이터 테이블 */
-  .pdf-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 11px;
-    table-layout: fixed;
-    margin-top: 6px;
-  }
-  .pdf-table th {
-    background: #1b3a5c;
-    color: #fff;
-    padding: 6px 4px;
-    border: 1px solid #000;
-    font-weight: bold;
-    text-align: center;
-    font-size: 11px;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .pdf-table td {
-    border: 1px solid #000;
-    padding: 4px 6px;
-    height: 22px;
-    text-align: center;
-    font-size: 11px;
-  }
-  .pdf-table td.text-left { text-align: left; padding-left: 6px; }
-  .pdf-table td.text-right { text-align: right; padding-right: 6px; }
-  .pdf-table th.col-no { width: 6%; }
-  .pdf-table th.col-date { width: 15%; }
-  .pdf-table th.col-vendor { width: 20%; }
-  .pdf-table th.col-desc { width: 39%; }
-  .pdf-table th.col-amt { width: 20%; }
-
-  .pdf-table tfoot td {
-    border: 1px solid #000;
-    padding: 9px 12px;
-    font-weight: bold;
-    font-size: 14px;
-    height: 34px;
-  }
-  .pdf-table tfoot td.total-label {
-    text-align: right;
-    background: #fff;
-    letter-spacing: .02em;
-  }
-  .pdf-table tfoot td.total-value {
-    background: #b4c6e7;
-    text-align: right;
-    font-size: 15px;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* 서명란 (이름 + 여백 + 밑줄) */
-  .pdf-signatures {
-    display: flex;
-    justify-content: space-between;
-    gap: 40px;
-    margin-top: 30px;
-  }
-  .pdf-signature-block { flex: 1; }
-  .pdf-signature-name { font-weight: bold; font-size: 13px; margin-bottom: 45px; }
-  .pdf-signature-line { border-bottom: 1px solid #000; height: 0; }
-
-  /* 로딩 오버레이 */
-  .pdf-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,.98);
-    z-index: 9999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #1b3a5c;
-  }
-  body.capturing .pdf-overlay { display: flex; }
-  .spinner {
-    width: 46px; height: 46px;
-    border: 4px solid #dde4ec;
-    border-top-color: #2f6fb0;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ============ 인쇄 모드 (fallback) ============ */
   @media print {
     @page { size: A4; margin: 8mm; }
-    body { background: #fff; padding: 0; margin: 0; }
-    .app-header, .input-form, .bottom-bar, .pdf-overlay { display: none !important; }
-    #pdf-template, body.capturing #pdf-template {
-      display: block !important;
-      position: static !important;
-      width: 100% !important;
-      min-height: 0 !important;
+
+    html, body {
+      background: #fff !important;
+      margin: 0 !important;
       padding: 0 !important;
+      width: 100%;
     }
+    .form-screen { display: none !important; }
+    .form-print { display: block !important; width: 100%; }
+
+    /* 인쇄 시 배경색/그래픽 강제 표시 */
     * {
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+
+    /* A4 레이아웃 */
+    .form-print {
+      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      color: #000;
+      font-size: 12px;
+      line-height: 1.3;
+      padding: 0;
+    }
+
+    /* 결재란 */
+    .p-approval-wrap { text-align: right; margin-bottom: 6px; }
+    .p-approval-table {
+      border-collapse: collapse;
+      display: inline-table;
+      border: 2px solid #000;
+    }
+    .p-approval-table td {
+      border: 1px solid #000;
+      padding: 3px 8px;
+      text-align: center;
+      font-size: 11px;
+    }
+    .p-approval-table .rotated {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-weight: bold;
+      padding: 4px 3px;
+      letter-spacing: 1px;
+      font-size: 12px;
+    }
+    .p-approval-table .header-cell { font-weight: bold; min-width: 68px; height: 22px; }
+    .p-approval-table .body-cell { height: 90px; min-width: 68px; }
+
+    /* 파란 배너 */
+    .p-banner {
+      background: #b4c6e7;
+      border: 1px solid #000;
+      text-align: center;
+      padding: 7px;
+      font-size: 19px;
+      font-weight: bold;
+      color: #1b3a5c;
+      margin-top: 4px;
+    }
+    .p-sub-banner {
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      padding: 7px 0 4px;
+      letter-spacing: .05em;
+    }
+
+    /* 정보 + 로고 */
+    .p-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin: 8px 0 6px;
+      gap: 15px;
+      min-height: 80px;
+    }
+    .p-info-fields { flex: 1; font-size: 13px; line-height: 1.9; }
+    .p-info-fields b { font-weight: bold; }
+    .p-logo-space { width: 120px; text-align: right; flex-shrink: 0; }
+    .p-logo-space img { max-width: 110px; max-height: 80px; object-fit: contain; }
+
+    /* 데이터 테이블 */
+    .p-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      table-layout: fixed;
+      margin-top: 6px;
+    }
+    .p-table th {
+      background: #1b3a5c !important;
+      color: #fff !important;
+      padding: 6px 4px;
+      border: 1px solid #000;
+      font-weight: bold;
+      text-align: center;
+      font-size: 11px;
+    }
+    .p-table td {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      height: 22px;
+      text-align: center;
+      font-size: 11px;
+    }
+    .p-table td.text-left { text-align: left; padding-left: 6px; }
+    .p-table td.text-right { text-align: right; padding-right: 6px; }
+    .p-table th.col-no { width: 6%; }
+    .p-table th.col-date { width: 15%; }
+    .p-table th.col-vendor { width: 20%; }
+    .p-table th.col-desc { width: 39%; }
+    .p-table th.col-amt { width: 20%; }
+
+    .p-table tfoot td {
+      border: 1px solid #000;
+      padding: 9px 12px;
+      font-weight: bold;
+      font-size: 14px;
+      height: 34px;
+    }
+    .p-table tfoot td.p-total-label {
+      text-align: right;
+      background: #fff;
+    }
+    .p-table tfoot td.p-total-value {
+      background: #b4c6e7 !important;
+      text-align: right;
+      font-size: 15px;
+    }
+
+    /* 서명란 (이름 + 여백 + 밑줄) */
+    .p-signatures {
+      display: flex;
+      justify-content: space-between;
+      gap: 40px;
+      margin-top: 30px;
+      page-break-inside: avoid;
+    }
+    .p-sig-block { flex: 1; }
+    .p-sig-name { font-weight: bold; font-size: 13px; margin-bottom: 45px; }
+    .p-sig-line { border-bottom: 1px solid #000; height: 0; }
   }
 </style>
 </head>
 <body>
 
-<header class="app-header">
-  <h1>JESUS BAPTIST CALGARY CHURCH</h1>
-  <h2>EXPENSE REIMBURSEMENT FORM</h2>
-</header>
+<!-- =========================================================
+     화면용 (모바일 친화적 입력 폼)
+     ========================================================= -->
+<div class="form-screen">
+  <header class="app-header">
+    <h1>JESUS BAPTIST CALGARY CHURCH</h1>
+    <h2>EXPENSE REIMBURSEMENT FORM</h2>
+  </header>
 
-<main class="input-form">
-  <!-- 기본 정보 -->
-  <section class="card">
-    <div class="field">
-      <label for="requestedBy">Requested By <span class="ko">요청자</span></label>
-      <input id="requestedBy" type="text" placeholder="이름을 입력하세요" autocomplete="name">
+  <main>
+    <section class="card">
+      <div class="field">
+        <label for="requestedBy">Requested By <span class="ko">요청자</span></label>
+        <input id="requestedBy" type="text" placeholder="이름을 입력하세요" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="dateSubmitted">Date Submitted <span class="ko">제출일</span></label>
+        <input id="dateSubmitted" type="date">
+      </div>
+      <div class="paid-by">Paid By : <strong>JESUS BAPTIST CALGARY CHURCH</strong></div>
+    </section>
+
+    <section class="table-wrap">
+      <table class="input-table">
+        <thead>
+          <tr>
+            <th class="c-no">No.</th>
+            <th>Date</th>
+            <th>Vendor</th>
+            <th>Description / Purpose</th>
+            <th class="c-amt">Amount (CAD $)</th>
+            <th class="c-del"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <button type="button" class="add-row" id="btnAddRow">＋ 행 추가 (최대 20개)</button>
+    </section>
+
+    <section class="card sign-card">
+      <div class="sign"><span>Verified By</span><strong>Insu Kim</strong></div>
+      <div class="sign"><span>Approved By</span><strong>Jesus Baptist Calgary Church</strong></div>
+    </section>
+  </main>
+
+  <div class="bottom-bar">
+    <div class="total-row">
+      <span>TOTAL AMOUNT REQUESTED</span>
+      <strong id="totalAmount">$0.00</strong>
     </div>
-    <div class="field">
-      <label for="dateSubmitted">Date Submitted <span class="ko">제출일</span></label>
-      <input id="dateSubmitted" type="date">
+    <div class="btn-row">
+      <button type="button" class="primary full-width" id="btnPrint">🖨️ PDF로 저장 / 인쇄</button>
+      <button type="button" class="full-width" id="btnReset">초기화</button>
     </div>
-    <div class="paid-by">Paid By : <strong>JESUS BAPTIST CALGARY CHURCH</strong></div>
-  </section>
-
-  <!-- 지출 내역 -->
-  <section class="table-wrap">
-    <table class="input-table">
-      <thead>
-        <tr>
-          <th class="c-no">No.</th>
-          <th>Date</th>
-          <th>Vendor</th>
-          <th>Description / Purpose</th>
-          <th class="c-amt">Amount (CAD $)</th>
-          <th class="c-del"></th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-    <button type="button" class="add-row" id="btnAddRow">＋ 행 추가 (최대 20개)</button>
-  </section>
-
-  <!-- 서명 (화면 표시용) -->
-  <section class="card sign-card">
-    <div class="sign"><span>Verified By</span><strong>Insu Kim</strong></div>
-    <div class="sign"><span>Approved By</span><strong>Jesus Baptist Calgary Church</strong></div>
-  </section>
-</main>
-
-<!-- 하단 고정 바 -->
-<div class="bottom-bar">
-  <div class="total-row">
-    <span>TOTAL AMOUNT REQUESTED</span>
-    <strong id="totalAmount">$0.00</strong>
-  </div>
-  <div class="btn-row">
-    <button type="button" class="primary full-width" id="btnComplete">✅ 완료 (PDF 저장)</button>
-    <button type="button" id="btnPrint">인쇄 (백업)</button>
-    <button type="button" class="full-width" id="btnReset">초기화</button>
+    <p class="print-tip">
+      💡 인쇄 화면에서 <b>대상을 "PDF로 저장"</b>으로 선택하세요.<br>
+      (아이폰: 인쇄 미리보기 → 공유 → 파일에 저장 / 안드로이드: 프린터 → PDF로 저장)
+    </p>
   </div>
 </div>
 
-<!-- ==========================================================
-     PDF 출력용 템플릿 (엑셀 양식 재현)
-     ========================================================== -->
-<div id="pdf-template">
-  <!-- 결재란 (열별로 병합) -->
-  <div class="approval-wrap">
-    <table class="approval-table">
+<!-- =========================================================
+     인쇄용 (A4 엑셀 양식) — 인쇄 시에만 표시됨
+     ========================================================= -->
+<div class="form-print" id="formPrint">
+  <!-- 결재란 -->
+  <div class="p-approval-wrap">
+    <table class="p-approval-table">
       <tr>
         <td rowspan="2" class="rotated">Approval</td>
         <td class="header-cell">Drafter</td>
@@ -438,25 +418,24 @@
     </table>
   </div>
 
-  <!-- 파란 헤더 -->
-  <div class="banner">JESUS BAPTIST CALGARY CHURCH</div>
-  <div class="sub-banner">EXPENSE REIMBURSEMENT FORM</div>
+  <!-- 배너 -->
+  <div class="p-banner">JESUS BAPTIST CALGARY CHURCH</div>
+  <div class="p-sub-banner">EXPENSE REIMBURSEMENT FORM</div>
 
   <!-- 정보 + 로고 -->
-  <div class="info-row">
-    <div class="info-fields">
+  <div class="p-info-row">
+    <div class="p-info-fields">
       <div><b>Requested By:</b> <span id="p-requested-by"></span></div>
       <div><b>Date Submitted:</b> <span id="p-date-sub"></span></div>
       <div><b>Paid By : JESUS BAPTIST CALGARY CHURCH</b></div>
     </div>
-    <div class="logo-space">
-      <!-- ⚠️ 로고 파일을 저장소 루트에 logo.png 로 업로드하면 자동 표시됩니다 -->
-      <img src="logo.png" alt="" crossorigin="anonymous" onerror="this.style.display='none'">
+    <div class="p-logo-space">
+      <img src="logo.png" alt="" onerror="this.style.display='none'">
     </div>
   </div>
 
   <!-- 데이터 테이블 -->
-  <table class="pdf-table">
+  <table class="p-table">
     <thead>
       <tr>
         <th class="col-no">No.</th>
@@ -469,36 +448,30 @@
     <tbody id="p-tbody"></tbody>
     <tfoot>
       <tr>
-        <td colspan="4" class="total-label">TOTAL AMOUNT REQUESTED</td>
-        <td class="total-value" id="p-total">0</td>
+        <td colspan="4" class="p-total-label">TOTAL AMOUNT REQUESTED</td>
+        <td class="p-total-value" id="p-total">0</td>
       </tr>
     </tfoot>
   </table>
 
-  <!-- 서명란 (이름 + 여백 + 밑줄) -->
-  <div class="pdf-signatures">
-    <div class="pdf-signature-block">
-      <div class="pdf-signature-name">Verified By Insu Kim</div>
-      <div class="pdf-signature-line"></div>
+  <!-- 서명란 -->
+  <div class="p-signatures">
+    <div class="p-sig-block">
+      <div class="p-sig-name">Verified By Insu Kim</div>
+      <div class="p-sig-line"></div>
     </div>
-    <div class="pdf-signature-block">
-      <div class="pdf-signature-name">Approved By Jesus Baptist Calgary Church</div>
-      <div class="pdf-signature-line"></div>
+    <div class="p-sig-block">
+      <div class="p-sig-name">Approved By Jesus Baptist Calgary Church</div>
+      <div class="p-sig-line"></div>
     </div>
   </div>
-</div>
-
-<!-- 로딩 오버레이 -->
-<div class="pdf-overlay">
-  <div class="spinner"></div>
-  <div>📄 PDF 생성 중...</div>
 </div>
 
 <script>
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'jbcc_expense_form_v4';
+  var STORAGE_KEY = 'jbcc_expense_form_v5';
   var INITIAL_ROWS = 10;
   var MAX_ROWS = 20;
 
@@ -573,7 +546,6 @@
     }
   }
 
-  /* ---------- 합계 ---------- */
   function updateTotal() {
     var sum = 0;
     Array.prototype.forEach.call(tbody.querySelectorAll('.in-amount'), function (inp) {
@@ -625,7 +597,7 @@
     updateTotal();
   }
 
-  /* ---------- 이벤트: 입력 ---------- */
+  /* ---------- 이벤트 ---------- */
   tbody.addEventListener('input', function (e) {
     var t = e.target;
     if (t.classList.contains('in-amount')) {
@@ -663,12 +635,7 @@
     var btn = e.target.closest('.btn-del');
     if (!btn) return;
     var tr = btn.closest('tr');
-    var count = tbody.children.length;
     tr.remove();
-    // 최소 1개는 유지
-    if (count - 1 < INITIAL_ROWS) {
-      // 자동으로 다시 채우지 않고, 그냥 남긴다
-    }
     if (tbody.children.length === 0) addRow({});
     renumber();
     updateAddButton();
@@ -679,7 +646,6 @@
   inRequested.addEventListener('input', save);
   inDateSub.addEventListener('change', save);
 
-  /* ---------- 행 추가 ---------- */
   btnAddRow.addEventListener('click', function () {
     if (tbody.children.length >= MAX_ROWS) return;
     var tr = addRow({});
@@ -689,12 +655,6 @@
     setTimeout(function () { target.focus(); }, 300);
   });
 
-  /* ---------- 인쇄 (백업) ---------- */
-  document.getElementById('btnPrint').addEventListener('click', function () {
-    window.print();
-  });
-
-  /* ---------- 초기화 ---------- */
   document.getElementById('btnReset').addEventListener('click', function () {
     if (!confirm('입력한 내용을 모두 지우고 새로 시작할까요?')) return;
     try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
@@ -708,118 +668,60 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  /* ==========================================================
-     ★ 완료: PDF 생성 (html2pdf 사용, 실패 시 인쇄로 fallback)
-     ========================================================== */
-  document.getElementById('btnComplete').addEventListener('click', async function () {
-    var btn = this;
-    var originalText = btn.textContent;
-
+  /* =========================================================
+     ★★★ 인쇄용 데이터 동기화 + 인쇄 실행 ★★★
+     ========================================================= */
+  function syncToPrint() {
     var requestedBy = inRequested.value.trim();
     var dateSubmitted = inDateSub.value;
 
+    document.getElementById('p-requested-by').textContent = requestedBy || ' ';
+    document.getElementById('p-date-sub').textContent = dateSubmitted || ' ';
+
+    var pTbody = document.getElementById('p-tbody');
+    pTbody.innerHTML = '';
+
+    var total = 0;
+    var inputRows = tbody.children;
+
+    for (var i = 0; i < inputRows.length; i++) {
+      var inTr = inputRows[i];
+      var date = inTr.querySelector('.in-date').value;
+      var vendor = inTr.querySelector('.in-vendor').value.trim();
+      var desc = inTr.querySelector('.in-desc').value.trim();
+      var amtStr = inTr.querySelector('.in-amount').value.trim();
+      var amt = parseAmt(amtStr);
+      total += amt;
+
+      var pTr = document.createElement('tr');
+      pTr.innerHTML =
+        '<td>' + (i + 1) + '</td>' +
+        '<td>' + (date || '') + '</td>' +
+        '<td>' + (vendor || '') + '</td>' +
+        '<td class="text-left">' + (desc || '') + '</td>' +
+        '<td class="text-right">' + (amtStr ? fmtAmt(amt) : '') + '</td>';
+      pTbody.appendChild(pTr);
+    }
+
+    document.getElementById('p-total').textContent = fmtAmt(total);
+  }
+
+  /* 인쇄 트리거 */
+  document.getElementById('btnPrint').addEventListener('click', function () {
+    var requestedBy = inRequested.value.trim();
     if (!requestedBy) {
-      alert('Requested By (요청자) 이름을 입력해주세요.');
+      alert('Requested By (요청자) 이름을 먼저 입력해주세요.');
       inRequested.focus();
       return;
     }
+    syncToPrint();
+    // 렌더링 안정화를 위해 살짝 지연
+    setTimeout(function () { window.print(); }, 60);
+  });
 
-    btn.disabled = true;
-    btn.textContent = '⏳ 처리 중...';
-
-    try {
-      // 1) PDF 템플릿에 데이터 채우기
-      document.getElementById('p-requested-by').textContent = requestedBy;
-      document.getElementById('p-date-sub').textContent = dateSubmitted;
-
-      var pTbody = document.getElementById('p-tbody');
-      pTbody.innerHTML = '';
-
-      var total = 0;
-      var inputRows = tbody.children;
-
-      for (var i = 0; i < inputRows.length; i++) {
-        var inTr = inputRows[i];
-        var date = inTr.querySelector('.in-date').value;
-        var vendor = inTr.querySelector('.in-vendor').value.trim();
-        var desc = inTr.querySelector('.in-desc').value.trim();
-        var amtStr = inTr.querySelector('.in-amount').value.trim();
-        var amt = parseAmt(amtStr);
-        total += amt;
-
-        var pTr = document.createElement('tr');
-        pTr.innerHTML =
-          '<td>' + (i + 1) + '</td>' +
-          '<td>' + (date || '') + '</td>' +
-          '<td>' + (vendor || '') + '</td>' +
-          '<td class="text-left">' + (desc || '') + '</td>' +
-          '<td class="text-right">' + (amtStr ? fmtAmt(amt) : '') + '</td>';
-        pTbody.appendChild(pTr);
-      }
-
-      document.getElementById('p-total').textContent =
-        total > 0 ? fmtAmt(total) : '0';
-
-      // 2) body에 capturing 클래스 추가 → 템플릿 표시 + 오버레이 표시
-      document.body.classList.add('capturing');
-
-      // 3) 렌더링 대기 (2프레임 + 250ms)
-      await new Promise(function (r) {
-        requestAnimationFrame(function () { requestAnimationFrame(r); });
-      });
-      await new Promise(function (r) { setTimeout(r, 300); });
-
-      // 4) 로고 이미지 로드 대기
-      var imgs = document.querySelectorAll('#pdf-template img');
-      await Promise.all(Array.prototype.map.call(imgs, function (img) {
-        if (img.complete) return Promise.resolve();
-        return new Promise(function (res) {
-          img.onload = res;
-          img.onerror = res;
-        });
-      }));
-
-      // 5) PDF 생성
-      var element = document.getElementById('pdf-template');
-      var opt = {
-        margin: 0,
-        filename: 'JBCC_Expense_' + (dateSubmitted || todayStr()) + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-          width: 794,
-          windowWidth: 794
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css'] }
-      };
-
-      await html2pdf().set(opt).from(element).save();
-
-    } catch (err) {
-      console.error('PDF 생성 오류:', err);
-      // 실패 시 인쇄 대화상자로 fallback
-      var usePrint = confirm(
-        '자동 PDF 저장이 실패했습니다.\n' +
-        '인쇄 대화상자를 열어 "PDF로 저장"을 사용할까요?'
-      );
-      if (usePrint) {
-        // capturing 클래스 유지한 상태로 인쇄
-        setTimeout(function () { window.print(); }, 100);
-        // 인쇄 후 정리
-        setTimeout(function () {
-          document.body.classList.remove('capturing');
-        }, 500);
-      }
-    } finally {
-      // 6) 정리
-      document.body.classList.remove('capturing');
-      btn.disabled = false;
-      btn.textContent = originalText;
-    }
+  /* 브라우저 자체 인쇄 (Ctrl+P 등)에도 데이터 반영 */
+  window.addEventListener('beforeprint', function () {
+    syncToPrint();
   });
 
   /* ---------- 시작 ---------- */
