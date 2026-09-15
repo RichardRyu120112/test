@@ -897,10 +897,13 @@
     // mailto 링크 생성 (제목/본문 자동 채움)
     var subject = 'JBCC Expense Reimbursement - ' + requestedBy + ' - ' + dateSubmitted;
     var bodyLines = [
+     
+      '(필수사항) 제출자는 PDF 파일과 영수증 사진을 첨부해야 합니다.',
+      '(IMPORTANT) Please ATTATCH the PDF file and photos of receipts, TOGERTHER.',
+     
       '안녕하세요,',
       '',
-      'JBCC 경비 청구서를 첨부합니다.',
-      'PDF 파일과 영수증 사진을 첨부해주세요.',
+      'JBCC 경비 청구서를 첨부합니다.'
       '',
       '- Requested By: ' + requestedBy,
       '- Date Submitted: ' + dateSubmitted,
@@ -911,7 +914,6 @@
       'Hello,',
       '',
       'Please find my JBCC expense reimbursement form attached.',
-      'Please attach the PDF file and photos of receipts.',
       '',
       '- Requested By: ' + requestedBy,
       '- Date Submitted: ' + dateSubmitted,
