@@ -484,7 +484,7 @@
         </thead>
         <tbody id="tbody"></tbody>
       </table>
-      <button type="button" class="add-row" id="btnAddRow">＋ 행 추가 (최대 20개)</button>
+      <button type="button" class="add-row" id="btnAddRow">＋ 행 추가</button>
     </section>
 
     <section class="card sign-card">
@@ -601,9 +601,9 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'jbcc_expense_form_v8';
-  var INITIAL_ROWS = 10;
-  var MAX_ROWS = 20;
+  var STORAGE_KEY = 'jbcc_expense_form_v9';
+  var INITIAL_ROWS = 3;   /* ★ 기본 3줄 */
+  var MAX_ROWS = 20;      /* ★ 최대 20줄 */
 
   var EMAIL_TO = 'kis7360@gmail.com';
 
@@ -717,7 +717,7 @@
     var count = tbody.children.length;
     if (count >= MAX_ROWS) {
       btnAddRow.disabled = true;
-      btnAddRow.textContent = '최대 20개 (더 이상 추가할 수 없습니다)';
+      btnAddRow.textContent = '최대 ' + MAX_ROWS + '개 (더 이상 추가할 수 없습니다)';
     } else {
       btnAddRow.disabled = false;
       btnAddRow.textContent = '＋ 행 추가 (' + count + '/' + MAX_ROWS + ')';
@@ -897,13 +897,12 @@
     // mailto 링크 생성 (제목/본문 자동 채움)
     var subject = 'JBCC Expense Reimbursement - ' + requestedBy + ' - ' + dateSubmitted;
     var bodyLines = [
-     
       '(필수사항) 제출자는 PDF 파일과 영수증 사진을 첨부해야 합니다.',
-      '(IMPORTANT) Please ATTATCH the PDF file and photos of receipts, TOGERTHER.',
-     
+      '(IMPORTANT) Please ATTACH the PDF file and photos of receipts, TOGETHER.',
+      '',
       '안녕하세요,',
       '',
-      'JBCC 경비 청구서를 첨부합니다.'
+      'JBCC 경비 청구서를 첨부합니다.',
       '',
       '- Requested By: ' + requestedBy,
       '- Date Submitted: ' + dateSubmitted,
@@ -994,7 +993,7 @@
       alert(
         '⚠️ ' + appName + '에서는 PDF 저장이 안 됩니다.\n\n' +
         '아래 방법으로 Safari 또는 Chrome에서 다시 열어주세요:\n\n' +
-        '1. 화면 오른쪽 위 ⋯ (또는 ⋮) 메뉴를 탭\n' +
+        '1. 화면 오른쪽 아래 ⋯ (또는 ⋮) 메뉴를 탭\n' +
         '2. "다른 브라우저로 열기" 또는 "Safari로 열기" 선택\n' +
         '3. 열린 브라우저에서 "✅ 완료 (PDF 저장)" 버튼을 다시 탭'
       );
@@ -1020,7 +1019,6 @@
   window.addEventListener('afterprint', function () {
     if (!pendingSubmitModal) return;
     pendingSubmitModal = false;
-    // UI 안정화 후 모달 표시
     setTimeout(openSubmitModal, 300);
   });
 
