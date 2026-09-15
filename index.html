@@ -46,41 +46,24 @@
   }
   .inapp-banner.show { display: block; }
   .inapp-banner h3 {
-    margin: 0 0 8px;
-    font-size: 15px;
-    font-weight: 800;
-    color: #b8860b;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    margin: 0 0 8px; font-size: 15px; font-weight: 800; color: #b8860b;
+    display: flex; align-items: center; gap: 6px;
   }
   .inapp-banner p { margin: 0 0 6px; }
   .inapp-banner p:last-child { margin-bottom: 0; }
-  .inapp-banner ol {
-    margin: 6px 0 0; padding-left: 22px;
-  }
+  .inapp-banner ol { margin: 6px 0 0; padding-left: 22px; }
   .inapp-banner ol li { margin-bottom: 4px; }
   .inapp-banner b { color: #b8860b; }
-  .inapp-banner .ua-name {
-    display: inline-block;
-    background: rgba(184,134,11,.15);
-    padding: 1px 6px; border-radius: 4px;
-    font-size: 12px; font-weight: 700;
-  }
 
   /* =========================================================
-     화면용 (모바일 친화적 입력 폼)
+     화면용 입력 폼
      ========================================================= */
   .form-screen { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
 
   .app-header {
     background: linear-gradient(140deg, #17324f, #2f6fb0);
-    color: #fff;
-    text-align: center;
+    color: #fff; text-align: center;
     padding: 18px 16px 20px;
-  }
-  .inapp-banner.show + .app-header {
-    padding-top: 18px;
   }
   .app-header h1 { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; font-weight: 600; opacity: .92; }
   .app-header h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
@@ -221,10 +204,130 @@
     color: var(--muted);
   }
 
-  /* 인앱 브라우저일 때 완료 버튼 비활성화 스타일 */
   body.inapp .btn-row .primary {
     background: #94a3b3;
     border-color: #94a3b3;
+  }
+
+  /* =========================================================
+     제출 안내 모달
+     ========================================================= */
+  .submit-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 20, 35, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    animation: fadeIn 0.2s ease-out;
+  }
+  .submit-modal.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .submit-modal-content {
+    background: #fff;
+    border-radius: 18px;
+    max-width: 460px;
+    width: 100%;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 24px 20px 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    animation: slideUp 0.25s ease-out;
+  }
+  .submit-modal-icon {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .submit-modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    text-align: center;
+    margin: 0 0 16px;
+  }
+  .submit-modal-msg {
+    background: #f4f7fb;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .submit-modal-msg .ko {
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  .submit-modal-msg .en {
+    color: var(--muted);
+    font-size: 13.5px;
+    border-top: 1px solid var(--line);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  .submit-modal-email {
+    text-align: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy2);
+    background: #eaf2fb;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 18px;
+    word-break: break-all;
+    user-select: all;
+    -webkit-user-select: all;
+  }
+
+  .submit-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .submit-btn {
+    display: block;
+    text-align: center;
+    padding: 14px 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .submit-btn:active { transform: scale(.98); }
+
+  .submit-btn.email {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .submit-btn.copy {
+    background: #f6f9fc;
+    color: var(--navy);
+    border-color: var(--line);
+  }
+  .submit-btn.close {
+    background: transparent;
+    color: var(--muted);
+    border-color: transparent;
+    padding: 10px;
+    font-size: 14px;
   }
 
   /* =========================================================
@@ -237,6 +340,7 @@
     html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; width: 100%; }
     .form-screen { display: none !important; }
     .inapp-banner { display: none !important; }
+    .submit-modal { display: none !important; }
     .form-print { display: block !important; width: 100%; }
     * {
       -webkit-print-color-adjust: exact !important;
@@ -332,14 +436,12 @@
 </head>
 <body>
 
-<!-- =========================================================
-     인앱 브라우저 경고 배너 (카카오톡/인스타/페이스북 등)
-     ========================================================= -->
+<!-- 인앱 브라우저 경고 배너 -->
 <div class="inapp-banner" id="inappBanner">
   <h3>⚠️ <span id="inappName">인앱 브라우저</span>에서는 PDF 저장이 안 됩니다</h3>
   <p>아래 방법으로 <b>Safari(아이폰) 또는 Chrome(안드로이드)</b>에서 다시 열어주세요:</p>
   <ol>
-    <li>화면 <b>오른쪽 위 <span id="menuIcon">⋯</span> 메뉴</b>를 탭합니다</li>
+    <li>화면 <b>오른쪽 위 ⋯ 메뉴</b>를 탭합니다</li>
     <li><b>"다른 브라우저로 열기"</b> 또는 <b>"Safari로 열기"</b>를 선택합니다</li>
     <li>브라우저가 열리면 <b>"✅ 완료 (PDF 저장)"</b> 버튼을 다시 탭합니다</li>
   </ol>
@@ -348,9 +450,7 @@
   </p>
 </div>
 
-<!-- =========================================================
-     화면용 입력 폼
-     ========================================================= -->
+<!-- 화면용 입력 폼 -->
 <div class="form-screen">
   <header class="app-header">
     <h1>JESUS BAPTIST CALGARY CHURCH</h1>
@@ -405,9 +505,7 @@
   </div>
 </div>
 
-<!-- =========================================================
-     인쇄용 (A4 엑셀 양식)
-     ========================================================= -->
+<!-- 인쇄용 (A4 엑셀 양식) -->
 <div class="form-print" id="formPrint">
   <div class="p-approval-wrap">
     <table class="p-approval-table">
@@ -472,13 +570,42 @@
   </div>
 </div>
 
+<!-- =========================================================
+     제출 안내 모달 (PDF 저장 후 표시)
+     ========================================================= -->
+<div class="submit-modal" id="submitModal">
+  <div class="submit-modal-content">
+    <div class="submit-modal-icon">📧</div>
+    <h2 class="submit-modal-title">제출 안내 / Submission Notice</h2>
+
+    <div class="submit-modal-msg">
+      <div class="ko">
+        저장하신 PDF 파일을 영수증 사진과 함께 이메일로 제출 부탁드립니다.
+      </div>
+      <div class="en">
+        Please submit the saved PDF file along with photos of your receipts via email.
+      </div>
+    </div>
+
+    <div class="submit-modal-email">kis7360@gmail.com</div>
+
+    <div class="submit-modal-actions">
+      <a class="submit-btn email" id="btnEmail" href="#">📨 이메일 보내기 / Send Email</a>
+      <button type="button" class="submit-btn copy" id="btnCopyEmail">📋 이메일 주소 복사 / Copy</button>
+      <button type="button" class="submit-btn close" id="btnCloseModal">닫기 / Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'jbcc_expense_form_v7';
+  var STORAGE_KEY = 'jbcc_expense_form_v8';
   var INITIAL_ROWS = 10;
   var MAX_ROWS = 20;
+
+  var EMAIL_TO = 'kis7360@gmail.com';
 
   var tbody = document.getElementById('tbody');
   var totalEl = document.getElementById('totalAmount');
@@ -487,13 +614,12 @@
   var btnAddRow = document.getElementById('btnAddRow');
 
   /* =========================================================
-     ★ 인앱 브라우저 감지
+     인앱 브라우저 감지
      ========================================================= */
   function detectInApp() {
     var ua = (navigator.userAgent || '') + ' ' + (navigator.vendor || '');
     var name = null;
 
-    // 1) 특정 앱 감지 (앱 이름 표시)
     if (/KAKAOTALK/i.test(ua)) name = '카카오톡';
     else if (/Instagram/i.test(ua)) name = '인스타그램';
     else if (/FBAN|FBAV|FB_IAB/i.test(ua)) name = '페이스북';
@@ -503,20 +629,13 @@
     else if (/SnapChat/i.test(ua)) name = '스냅챗';
     else if (/Twitter/i.test(ua)) name = 'X(트위터)';
     else if (/Pinterest/i.test(ua)) name = '핀터레스트';
-    else if (/KAKAOSTORY/i.test(ua)) name = '카카오스토리';
 
-    if (name) {
-      return { inApp: true, name: name };
-    }
+    if (name) return { inApp: true, name: name };
 
-    // 2) iOS WebView (Safari가 아닌데 iPhone/iPad인 경우)
     var isIOS = /iPhone|iPad|iPod/i.test(ua);
     var isIOSRealBrowser = /Safari/i.test(ua) || /CriOS/i.test(ua) || /FxiOS/i.test(ua) || /EdgiOS/i.test(ua);
-    if (isIOS && !isIOSRealBrowser) {
-      return { inApp: true, name: '인앱 브라우저' };
-    }
+    if (isIOS && !isIOSRealBrowser) return { inApp: true, name: '인앱 브라우저' };
 
-    // 3) Android WebView (; wv) 포함)
     var isAndroid = /Android/i.test(ua);
     var isAndroidWebView = /;\s*wv\)/i.test(ua);
     var isAndroidRealBrowser = /Chrome\/\d+/i.test(ua) && !isAndroidWebView;
@@ -524,7 +643,6 @@
       return { inApp: true, name: '인앱 브라우저' };
     }
     if (isAndroid && /Version\/\d+\.\d+\s+Mobile\s+Safari/i.test(ua) && !/Chrome/i.test(ua)) {
-      // 구형 Android 기본 브라우저 (일부 WebView)
       return { inApp: true, name: '인앱 브라우저' };
     }
 
@@ -538,9 +656,7 @@
     document.body.classList.add('inapp');
     var banner = document.getElementById('inappBanner');
     var nameEl = document.getElementById('inappName');
-    if (nameEl && inAppState.name) {
-      nameEl.textContent = inAppState.name;
-    }
+    if (nameEl && inAppState.name) nameEl.textContent = inAppState.name;
     if (banner) banner.classList.add('show');
   }
 
@@ -767,8 +883,102 @@
   }
 
   /* =========================================================
-     완료 버튼
+     제출 안내 모달
      ========================================================= */
+  var modal = document.getElementById('submitModal');
+  var btnEmail = document.getElementById('btnEmail');
+  var btnCopyEmail = document.getElementById('btnCopyEmail');
+  var btnCloseModal = document.getElementById('btnCloseModal');
+
+  function openSubmitModal() {
+    var requestedBy = inRequested.value.trim() || 'Expense';
+    var dateSubmitted = inDateSub.value || todayStr();
+
+    // mailto 링크 생성 (제목/본문 자동 채움)
+    var subject = 'JBCC Expense Reimbursement - ' + requestedBy + ' - ' + dateSubmitted;
+    var bodyLines = [
+      '안녕하세요,',
+      '',
+      'JBCC 경비 청구서를 첨부합니다.',
+      'PDF 파일과 영수증 사진을 첨부해주세요.',
+      '',
+      '- Requested By: ' + requestedBy,
+      '- Date Submitted: ' + dateSubmitted,
+      '',
+      '감사합니다.',
+      '',
+      '---',
+      'Hello,',
+      '',
+      'Please find my JBCC expense reimbursement form attached.',
+      'Please attach the PDF file and photos of receipts.',
+      '',
+      '- Requested By: ' + requestedBy,
+      '- Date Submitted: ' + dateSubmitted,
+      '',
+      'Thank you.'
+    ];
+    var body = bodyLines.join('\r\n');
+
+    var mailtoUrl = 'mailto:' + encodeURIComponent(EMAIL_TO) +
+      '?subject=' + encodeURIComponent(subject) +
+      '&body=' + encodeURIComponent(body);
+
+    btnEmail.setAttribute('href', mailtoUrl);
+
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSubmitModal() {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  btnCloseModal.addEventListener('click', closeSubmitModal);
+
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeSubmitModal();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('show')) closeSubmitModal();
+  });
+
+  btnCopyEmail.addEventListener('click', function () {
+    var text = EMAIL_TO;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        var orig = btnCopyEmail.textContent;
+        btnCopyEmail.textContent = '✅ 복사됨! / Copied!';
+        setTimeout(function () { btnCopyEmail.textContent = orig; }, 1800);
+      }).catch(function () {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    var orig = btnCopyEmail.textContent;
+    btnCopyEmail.textContent = '✅ 복사됨! / Copied!';
+    setTimeout(function () { btnCopyEmail.textContent = orig; }, 1800);
+  }
+
+  /* =========================================================
+     완료 버튼 (PDF 저장)
+     ========================================================= */
+  var pendingSubmitModal = false;
+
   document.getElementById('btnPrint').addEventListener('click', function () {
     var requestedBy = inRequested.value.trim();
     if (!requestedBy) {
@@ -777,30 +987,39 @@
       return;
     }
 
-    // ★ 인앱 브라우저인 경우 → 경고 + 배너로 스크롤
     if (IN_APP) {
       var appName = inAppState.name || '인앱 브라우저';
       alert(
         '⚠️ ' + appName + '에서는 PDF 저장이 안 됩니다.\n\n' +
         '아래 방법으로 Safari 또는 Chrome에서 다시 열어주세요:\n\n' +
-        '1. 화면 오른쪽 아래 ⋯ (또는 ⋮) 메뉴를 탭\n' +
+        '1. 화면 오른쪽 위 ⋯ (또는 ⋮) 메뉴를 탭\n' +
         '2. "다른 브라우저로 열기" 또는 "Safari로 열기" 선택\n' +
         '3. 열린 브라우저에서 "✅ 완료 (PDF 저장)" 버튼을 다시 탭'
       );
-      // 배너로 스크롤
       var banner = document.getElementById('inappBanner');
-      if (banner) {
-        banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
 
     syncToPrint();
+
+    // 인쇄가 끝난 뒤 제출 안내 모달을 띄울 플래그
+    pendingSubmitModal = true;
+
     setTimeout(function () { window.print(); }, 60);
   });
 
+  // 인쇄 미리보기 실행 시에도 항상 데이터 동기화
   window.addEventListener('beforeprint', function () {
     syncToPrint();
+  });
+
+  // 인쇄 대화상자가 닫힌 뒤 → 제출 안내 모달 표시
+  window.addEventListener('afterprint', function () {
+    if (!pendingSubmitModal) return;
+    pendingSubmitModal = false;
+    // UI 안정화 후 모달 표시
+    setTimeout(openSubmitModal, 300);
   });
 
   load();
