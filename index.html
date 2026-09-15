@@ -15,6 +15,9 @@
     --text: #16222e;
     --muted: #68788a;
     --danger: #c0392b;
+    --warn-bg: #fff3cd;
+    --warn-border: #ffc107;
+    --warn-text: #856404;
     --radius: 14px;
   }
   html { -webkit-text-size-adjust: 100%; }
@@ -29,6 +32,43 @@
   }
 
   /* =========================================================
+     인앱 브라우저 경고 배너
+     ========================================================= */
+  .inapp-banner {
+    display: none;
+    background: var(--warn-bg);
+    border-bottom: 2px solid var(--warn-border);
+    color: var(--warn-text);
+    padding: 14px 16px;
+    padding-top: calc(14px + env(safe-area-inset-top));
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .inapp-banner.show { display: block; }
+  .inapp-banner h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #b8860b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .inapp-banner p { margin: 0 0 6px; }
+  .inapp-banner p:last-child { margin-bottom: 0; }
+  .inapp-banner ol {
+    margin: 6px 0 0; padding-left: 22px;
+  }
+  .inapp-banner ol li { margin-bottom: 4px; }
+  .inapp-banner b { color: #b8860b; }
+  .inapp-banner .ua-name {
+    display: inline-block;
+    background: rgba(184,134,11,.15);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; font-weight: 700;
+  }
+
+  /* =========================================================
      화면용 (모바일 친화적 입력 폼)
      ========================================================= */
   .form-screen { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
@@ -37,7 +77,10 @@
     background: linear-gradient(140deg, #17324f, #2f6fb0);
     color: #fff;
     text-align: center;
-    padding: calc(18px + env(safe-area-inset-top)) 16px 20px;
+    padding: 18px 16px 20px;
+  }
+  .inapp-banner.show + .app-header {
+    padding-top: 18px;
   }
   .app-header h1 { margin: 0 0 6px; font-size: 13px; letter-spacing: .14em; font-weight: 600; opacity: .92; }
   .app-header h2 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: .02em; }
@@ -127,7 +170,7 @@
   .sign strong { font-size: 15px; color: var(--navy); }
 
   /* =========================================================
-     ★ 하단 고정 바 (컴팩트 버전)
+     컴팩트 하단 바
      ========================================================= */
   .bottom-bar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
@@ -151,7 +194,7 @@
 
   .btn-row {
     display: grid;
-    grid-template-columns: 1fr auto;  /* 완료는 넓게, 초기화는 좁게 */
+    grid-template-columns: 1fr auto;
     gap: 6px;
   }
   .btn-row button {
@@ -178,6 +221,12 @@
     color: var(--muted);
   }
 
+  /* 인앱 브라우저일 때 완료 버튼 비활성화 스타일 */
+  body.inapp .btn-row .primary {
+    background: #94a3b3;
+    border-color: #94a3b3;
+  }
+
   /* =========================================================
      인쇄용 (A4 엑셀 양식)
      ========================================================= */
@@ -187,6 +236,7 @@
     @page { size: A4; margin: 8mm; }
     html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; width: 100%; }
     .form-screen { display: none !important; }
+    .inapp-banner { display: none !important; }
     .form-print { display: block !important; width: 100%; }
     * {
       -webkit-print-color-adjust: exact !important;
@@ -283,7 +333,23 @@
 <body>
 
 <!-- =========================================================
-     화면용 (모바일 친화적 입력 폼)
+     인앱 브라우저 경고 배너 (카카오톡/인스타/페이스북 등)
+     ========================================================= -->
+<div class="inapp-banner" id="inappBanner">
+  <h3>⚠️ <span id="inappName">인앱 브라우저</span>에서는 PDF 저장이 안 됩니다</h3>
+  <p>아래 방법으로 <b>Safari(아이폰) 또는 Chrome(안드로이드)</b>에서 다시 열어주세요:</p>
+  <ol>
+    <li>화면 <b>오른쪽 위 <span id="menuIcon">⋯</span> 메뉴</b>를 탭합니다</li>
+    <li><b>"다른 브라우저로 열기"</b> 또는 <b>"Safari로 열기"</b>를 선택합니다</li>
+    <li>브라우저가 열리면 <b>"✅ 완료 (PDF 저장)"</b> 버튼을 다시 탭합니다</li>
+  </ol>
+  <p style="margin-top: 10px; font-size: 13px;">
+    💡 카카오톡은 자체 브라우저를 사용해서 <b>인쇄 기능이 차단</b>되어 있습니다.
+  </p>
+</div>
+
+<!-- =========================================================
+     화면용 입력 폼
      ========================================================= -->
 <div class="form-screen">
   <header class="app-header">
@@ -327,7 +393,6 @@
     </section>
   </main>
 
-  <!-- ★ 컴팩트 하단 바 -->
   <div class="bottom-bar">
     <div class="total-row">
       <span>TOTAL</span>
@@ -411,10 +476,9 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'jbcc_expense_form_v6';
+  var STORAGE_KEY = 'jbcc_expense_form_v7';
   var INITIAL_ROWS = 10;
   var MAX_ROWS = 20;
-  var TIP_KEY = 'jbcc_tip_shown_v6';
 
   var tbody = document.getElementById('tbody');
   var totalEl = document.getElementById('totalAmount');
@@ -422,6 +486,65 @@
   var inDateSub = document.getElementById('dateSubmitted');
   var btnAddRow = document.getElementById('btnAddRow');
 
+  /* =========================================================
+     ★ 인앱 브라우저 감지
+     ========================================================= */
+  function detectInApp() {
+    var ua = (navigator.userAgent || '') + ' ' + (navigator.vendor || '');
+    var name = null;
+
+    // 1) 특정 앱 감지 (앱 이름 표시)
+    if (/KAKAOTALK/i.test(ua)) name = '카카오톡';
+    else if (/Instagram/i.test(ua)) name = '인스타그램';
+    else if (/FBAN|FBAV|FB_IAB/i.test(ua)) name = '페이스북';
+    else if (/Line\//i.test(ua)) name = '라인';
+    else if (/NAVER/i.test(ua)) name = '네이버 앱';
+    else if (/DaumApps/i.test(ua)) name = '다음 앱';
+    else if (/SnapChat/i.test(ua)) name = '스냅챗';
+    else if (/Twitter/i.test(ua)) name = 'X(트위터)';
+    else if (/Pinterest/i.test(ua)) name = '핀터레스트';
+    else if (/KAKAOSTORY/i.test(ua)) name = '카카오스토리';
+
+    if (name) {
+      return { inApp: true, name: name };
+    }
+
+    // 2) iOS WebView (Safari가 아닌데 iPhone/iPad인 경우)
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var isIOSRealBrowser = /Safari/i.test(ua) || /CriOS/i.test(ua) || /FxiOS/i.test(ua) || /EdgiOS/i.test(ua);
+    if (isIOS && !isIOSRealBrowser) {
+      return { inApp: true, name: '인앱 브라우저' };
+    }
+
+    // 3) Android WebView (; wv) 포함)
+    var isAndroid = /Android/i.test(ua);
+    var isAndroidWebView = /;\s*wv\)/i.test(ua);
+    var isAndroidRealBrowser = /Chrome\/\d+/i.test(ua) && !isAndroidWebView;
+    if (isAndroid && isAndroidWebView && !isAndroidRealBrowser) {
+      return { inApp: true, name: '인앱 브라우저' };
+    }
+    if (isAndroid && /Version\/\d+\.\d+\s+Mobile\s+Safari/i.test(ua) && !/Chrome/i.test(ua)) {
+      // 구형 Android 기본 브라우저 (일부 WebView)
+      return { inApp: true, name: '인앱 브라우저' };
+    }
+
+    return { inApp: false };
+  }
+
+  var inAppState = detectInApp();
+  var IN_APP = inAppState.inApp;
+
+  if (IN_APP) {
+    document.body.classList.add('inapp');
+    var banner = document.getElementById('inappBanner');
+    var nameEl = document.getElementById('inappName');
+    if (nameEl && inAppState.name) {
+      nameEl.textContent = inAppState.name;
+    }
+    if (banner) banner.classList.add('show');
+  }
+
+  /* ---------- 유틸 ---------- */
   function pad(n) { return String(n).padStart(2, '0'); }
   function todayStr() {
     var d = new Date();
@@ -606,7 +729,7 @@
   });
 
   /* =========================================================
-     인쇄용 데이터 동기화 + 인쇄 실행
+     인쇄용 데이터 동기화
      ========================================================= */
   function syncToPrint() {
     var requestedBy = inRequested.value.trim();
@@ -643,6 +766,9 @@
     document.getElementById('p-total').textContent = fmtAmt(total);
   }
 
+  /* =========================================================
+     완료 버튼
+     ========================================================= */
   document.getElementById('btnPrint').addEventListener('click', function () {
     var requestedBy = inRequested.value.trim();
     if (!requestedBy) {
@@ -651,26 +777,26 @@
       return;
     }
 
-    syncToPrint();
-
-    // 처음 사용 시에만 안내
-    var tipShown = false;
-    try { tipShown = localStorage.getItem(TIP_KEY) === '1'; } catch (e) {}
-    if (!tipShown) {
-      try { localStorage.setItem(TIP_KEY, '1'); } catch (e) {}
-      setTimeout(function () {
-        alert(
-          '📄 PDF로 저장하는 방법\n\n' +
-          '인쇄 화면이 열리면:\n' +
-          '• 아이폰: 미리보기 → 공유(⬆️) → "파일에 저장"\n' +
-          '• 안드로이드: 프린터 → "PDF로 저장" 선택\n\n' +
-          '💡 배경 그래픽 옵션이 있으면 반드시 켜주세요.'
-        );
-        window.print();
-      }, 60);
-    } else {
-      setTimeout(function () { window.print(); }, 60);
+    // ★ 인앱 브라우저인 경우 → 경고 + 배너로 스크롤
+    if (IN_APP) {
+      var appName = inAppState.name || '인앱 브라우저';
+      alert(
+        '⚠️ ' + appName + '에서는 PDF 저장이 안 됩니다.\n\n' +
+        '아래 방법으로 Safari 또는 Chrome에서 다시 열어주세요:\n\n' +
+        '1. 화면 오른쪽 아래 ⋯ (또는 ⋮) 메뉴를 탭\n' +
+        '2. "다른 브라우저로 열기" 또는 "Safari로 열기" 선택\n' +
+        '3. 열린 브라우저에서 "✅ 완료 (PDF 저장)" 버튼을 다시 탭'
+      );
+      // 배너로 스크롤
+      var banner = document.getElementById('inappBanner');
+      if (banner) {
+        banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
     }
+
+    syncToPrint();
+    setTimeout(function () { window.print(); }, 60);
   });
 
   window.addEventListener('beforeprint', function () {
